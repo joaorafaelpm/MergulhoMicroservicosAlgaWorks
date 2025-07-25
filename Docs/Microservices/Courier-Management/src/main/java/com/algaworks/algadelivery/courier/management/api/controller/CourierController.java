@@ -9,19 +9,25 @@ import com.algaworks.algadelivery.courier.management.domain.service.CourierPayou
 import com.algaworks.algadelivery.courier.management.domain.service.CourierRegistrationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.backoff.ThreadWaitSleeper;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.xml.datatype.Duration;
 import java.math.BigDecimal;
+import java.util.Random;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/couriers")
 @RequiredArgsConstructor
+@Slf4j
 public class CourierController {
 
     private final CourierRegistrationService courierRegistrationService;
@@ -52,9 +58,21 @@ public class CourierController {
         );
     }
 
+    @SneakyThrows
     @PostMapping("/payout-calculation")
     public CourierPayoutResultModel calculate (@RequestBody CourierPayoutCalculationInput input) {
         BigDecimal payoutFee = courierPayoutService.calculate(input.getDistanceInKm());
+
+//        Testar o Timeout Pattern
+
+//        log.info("Calculating") ;
+//
+//        if (Math.random() < 0.8) {
+//            throw new RuntimeException();
+//        }
+//
+//        int milis = new Random().nextInt(200);
+//        Thread.sleep(milis);
 
         return new CourierPayoutResultModel(payoutFee);
     }
